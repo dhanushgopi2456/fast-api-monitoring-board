@@ -676,7 +676,7 @@ The repository's documented `docs/` directory includes:
   <a href="https://github.com/dhanushgopi2456">
     <img src="https://img.shields.io/badge/GitHub-Dhanush%20Gopi-181717?style=for-the-badge&amp;logo=github&amp;logoColor=white" alt="GitHub Profile" />
   </a>
-  <a href="https://www.linkedin.com/in/dhanush-gopi-kavala-a460a528b/">
+  <a href="https://www.linkedin.com/in/dhanush-gopi-kavala">
     <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&amp;logo=linkedin&amp;logoColor=white" alt="LinkedIn Profile" />
   </a>
 </p>
