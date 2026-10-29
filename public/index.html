@@ -1,0 +1,2179 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovaPulse AI — Ultra FastAPI Observability & Chaos Suite</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  
+  <!-- Material Icons Font Import -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Chart.js for Metrics Visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- NovaPulse Dual-Theme, 3D Canvas, & PiP CSS -->
+  <style>
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+/* ========================================================================= */
+/* NOVAPULSE AI — DUAL THEME COLOR TOKENS (DARK & LIGHT MODE)               */
+/* ========================================================================= */
+:root, html.dark {
+  --theme-mode: dark;
+  --bg-app: #0b0d11;
+  --text-main: #f8fafc;
+  --text-heading: #ffffff;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --card-bg: #131720;
+  --card-bg-elevated: #181d29;
+  --card-border: #232a3b;
+  --card-border-hover: #3b82f6;
+  --nav-bg: rgba(11, 13, 17, 0.88);
+  --nav-border: #1e2433;
+  --btn-primary-bg: #1d2433;
+  --btn-primary-border: #2e384d;
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover-bg: #263044;
+  --primary-accent: #3b82f6;
+  --primary-glow: rgba(59, 130, 246, 0.28);
+  --validation-accent: #f59e0b;
+  --danger-accent: #ef4444;
+  --success-accent: #10b981;
+  --toast-bg: #151922;
+  --toast-border: #2b3548;
+  --grid-line: rgba(255, 255, 255, 0.035);
+  --modal-backdrop: rgba(0, 0, 0, 0.85);
+  --chart-grid: rgba(255, 255, 255, 0.05);
+  --chart-text: #94a3b8;
+  --cursor-dot: #38bdf8;
+  --cursor-ring: rgba(56, 189, 248, 0.65);
+  --cursor-glow: rgba(56, 189, 248, 0.18);
+  --pip-bg: #151922;
+  --pip-border: #3b82f6;
+}
+
+html.light {
+  --theme-mode: light;
+  --bg-app: #f4f6fa;
+  --text-main: #0f172a;
+  --text-heading: #090d16;
+  --text-muted: #475569;
+  --text-dim: #64748b;
+  --card-bg: #ffffff;
+  --card-bg-elevated: #f8fafc;
+  --card-border: #e2e8f0;
+  --card-border-hover: #2563eb;
+  --nav-bg: rgba(255, 255, 255, 0.94);
+  --nav-border: #e2e8f0;
+  --btn-primary-bg: #f1f5f9;
+  --btn-primary-border: #cbd5e1;
+  --btn-primary-text: #0f172a;
+  --btn-primary-hover-bg: #e2e8f0;
+  --primary-accent: #2563eb;
+  --primary-glow: rgba(37, 99, 235, 0.22);
+  --validation-accent: #d97706;
+  --danger-accent: #dc2626;
+  --success-accent: #059669;
+  --toast-bg: #ffffff;
+  --toast-border: #cbd5e1;
+  --grid-line: rgba(15, 23, 42, 0.045);
+  --modal-backdrop: rgba(15, 23, 42, 0.7);
+  --chart-grid: rgba(15, 23, 42, 0.08);
+  --chart-text: #334155;
+  --cursor-dot: #2563eb;
+  --cursor-ring: rgba(37, 99, 235, 0.7);
+  --cursor-glow: rgba(37, 99, 235, 0.2);
+  --pip-bg: #ffffff;
+  --pip-border: #2563eb;
+}
+
+/* ========================================================================= */
+/* BASE RESET & TYPOGRAPHY                                                   */
+/* ========================================================================= */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 250ms ease, color 250ms ease;
+}
+
+h1, h2, h3, h4 {
+  color: var(--text-heading);
+  margin: 0;
+}
+
+p {
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ========================================================================= */
+/* ANIMATED CUSTOM CURSOR                                                    */
+/* ========================================================================= */
+.custom-cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  background-color: var(--cursor-dot);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 999999;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px var(--cursor-dot);
+  transition: width 0.15s ease, height 0.15s ease, background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.custom-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid var(--cursor-ring);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 999998;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              height 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s ease,
+              background-color 0.2s ease;
+}
+
+.custom-cursor-ring.cursor-hover {
+  width: 52px;
+  height: 52px;
+  background-color: var(--cursor-glow);
+  border-color: var(--primary-accent);
+  border-width: 2px;
+}
+
+.custom-cursor-ring.cursor-click {
+  width: 26px;
+  height: 26px;
+  transform: translate(-50%, -50%) scale(0.9);
+  background-color: var(--cursor-glow);
+}
+
+@media (pointer: coarse) or (hover: none) {
+  .custom-cursor-dot, .custom-cursor-ring {
+    display: none !important;
+  }
+  body, button, a, input, select, textarea, .nav-tab, .card, .sim-btn, .endpoint-test-btn {
+    cursor: auto !important;
+  }
+}
+
+/* ========================================================================= */
+/* 3D PERSPECTIVE BACKGROUND CANVAS & AMBIENT MESH                          */
+/* ========================================================================= */
+.canvas-3d-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+#bg-canvas-3d {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ambient-gradient-mesh {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.ambient-orb-1 {
+  position: absolute;
+  top: -10%;
+  left: 10%;
+  width: 60vw;
+  height: 60vw;
+  max-width: 750px;
+  max-height: 750px;
+  background: radial-gradient(circle, var(--primary-glow) 0%, transparent 68%);
+  filter: blur(90px);
+  animation: pulse-slow 8s ease-in-out infinite alternate;
+}
+
+.ambient-orb-2 {
+  position: absolute;
+  bottom: 5%;
+  right: 5%;
+  width: 55vw;
+  height: 55vw;
+  max-width: 650px;
+  max-height: 650px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, transparent 65%);
+  filter: blur(100px);
+  animation: pulse-slow 10s ease-in-out infinite alternate-reverse;
+}
+
+.ambient-orb-3 {
+  position: absolute;
+  top: 45%;
+  left: 45%;
+  width: 45vw;
+  height: 45vw;
+  max-width: 500px;
+  max-height: 500px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 65%);
+  filter: blur(110px);
+  animation: pulse-slow 12s ease-in-out infinite alternate;
+}
+
+.cyber-grid-overlay {
+  position: fixed;
+  inset: 0;
+  background-size: 36px 36px;
+  background-image: 
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 85%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Mouse Shockwave Ripple */
+.mouse-ripple {
+  position: fixed;
+  border-radius: 50%;
+  border: 1.5px solid var(--primary-accent);
+  pointer-events: none;
+  z-index: 999990;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0.85;
+  animation: ripple-shockwave 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes ripple-shockwave {
+  to {
+    transform: translate(-50%, -50%) scale(3.5);
+    opacity: 0;
+  }
+}
+
+/* ========================================================================= */
+/* COMPONENT STYLES (CARDS, BUTTONS, BADGES)                                 */
+/* ========================================================================= */
+.card {
+  background-color: var(--card-bg);
+  color: var(--text-main);
+  border: 1px solid var(--card-border);
+  border-radius: 24px;
+  transition: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+}
+
+.card:hover {
+  border-color: var(--card-border-hover);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.12);
+}
+
+.card-elevated {
+  background-color: var(--card-bg-elevated);
+}
+
+.button-primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border: 1px solid var(--btn-primary-border);
+  border-radius: 9999px;
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 180ms ease;
+  user-select: none;
+  outline: none;
+  white-space: nowrap;
+}
+
+.button-primary:hover {
+  background: var(--btn-primary-hover-bg);
+  border-color: var(--primary-accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -2px var(--primary-glow);
+}
+
+.button-primary:active {
+  transform: translateY(0);
+}
+
+/* Navigation Tab Buttons */
+.nav-tab {
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 14px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 180ms ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.nav-tab:hover {
+  color: var(--text-heading);
+  background: var(--btn-primary-bg);
+  border-color: var(--card-border);
+}
+
+.nav-tab.active {
+  color: var(--text-heading);
+  background: var(--card-bg);
+  border-color: var(--primary-accent);
+  box-shadow: 0 2px 10px -2px var(--primary-glow);
+  font-weight: 600;
+}
+
+/* Pills & Status Badges */
+.badge-pill {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.12) 100%);
+  color: var(--primary-accent);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.03em;
+  user-select: none;
+}
+
+.badge-pill-emerald {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.08) 100%);
+  color: var(--success-accent);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-pill-orange {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0.08) 100%);
+  color: var(--validation-accent);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-pill-rose {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.08) 100%);
+  color: var(--danger-accent);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-pill-blue {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.08) 100%);
+  color: var(--primary-accent);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ========================================================================= */
+/* UNIVERSAL PICTURE-IN-PICTURE (PIP) FLOATING DOCK                          */
+/* ========================================================================= */
+#floating-pip-dock {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 320px;
+  z-index: 99990;
+  border-radius: 18px;
+  background-color: var(--pip-bg);
+  border: 2px solid var(--pip-border);
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  transition: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: bottom right;
+}
+
+#floating-pip-dock.pip-minimized {
+  width: 220px;
+  height: 48px;
+}
+
+#floating-pip-dock.pip-minimized .pip-media-wrapper {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  #floating-pip-dock {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+    width: auto;
+    max-width: calc(100vw - 2rem);
+  }
+  #floating-pip-dock.pip-minimized {
+    left: auto;
+    right: 1rem;
+    width: 200px;
+  }
+}
+
+.pip-trigger-btn {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: all 200ms ease;
+  pointer-events: auto;
+}
+
+.group:hover .pip-trigger-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ========================================================================= */
+/* KEYFRAME ANIMATIONS                                                       */
+/* ========================================================================= */
+@keyframes marquee-x {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.08); opacity: 0.65; }
+}
+
+@keyframes tab-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-tab-entrance {
+  animation: tab-entrance 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes beacon-ping {
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 7px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.beacon-healthy {
+  animation: beacon-ping 2s infinite cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ecg-dash {
+  to { stroke-dashoffset: -200; }
+}
+
+.ecg-path {
+  stroke-dasharray: 200;
+  animation: ecg-dash 2.4s linear infinite;
+}
+
+/* Continuous Marquee Ticker */
+.marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+  display: flex;
+  user-select: none;
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.marquee-content {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  animation: marquee-x 35s linear infinite;
+  min-width: 100%;
+}
+
+.marquee-content:hover {
+  animation-play-state: paused;
+}
+
+/* ========================================================================= */
+/* TOAST NOTIFICATION STACK                                                 */
+/* ========================================================================= */
+#toast-container {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+  max-width: 380px;
+  width: calc(100vw - 3rem);
+}
+
+.toast-item {
+  pointer-events: auto;
+  transform-origin: top right;
+  animation: tab-entrance 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  background: var(--toast-bg);
+  border: 1px solid var(--toast-border);
+  color: var(--text-main);
+  border-radius: 16px;
+  box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.25);
+}
+
+.toast-exit {
+  animation: tab-entrance 200ms ease-in reverse forwards;
+}
+
+/* ========================================================================= */
+/* CODE BLOCKS & SCROLLBAR                                                  */
+/* ========================================================================= */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--card-border-hover);
+}
+
+pre {
+  background: var(--card-bg-elevated);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 16px;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-main);
+}
+
+</style>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="selection:bg-[#3b82f6] selection:text-white">
+
+  <!-- Interactive Animated Custom Cursor -->
+  <div class="custom-cursor-dot" id="cursor-dot"></div>
+  <div class="custom-cursor-ring" id="cursor-ring"></div>
+
+  <!-- Interactive 3D Perspective Background Canvas -->
+  <div class="canvas-3d-container">
+    <canvas id="bg-canvas-3d"></canvas>
+  </div>
+
+  <!-- Ambient Multi-Orb Glow & Cyber Grid Matrix -->
+  <div class="ambient-gradient-mesh">
+    <div class="ambient-orb-1"></div>
+    <div class="ambient-orb-2"></div>
+    <div class="ambient-orb-3"></div>
+  </div>
+  <div class="cyber-grid-overlay"></div>
+
+  <!-- Toast Notification Stack -->
+  <div id="toast-container"></div>
+
+  <!-- ========================================================================= -->
+  <!-- UNIVERSAL FLOATING PICTURE-IN-PICTURE (PIP) DOCK                          -->
+  <!-- ========================================================================= -->
+  <div id="floating-pip-dock" class="hidden">
+    <!-- PiP Dock Header -->
+    <div class="flex items-center justify-between px-3.5 py-2.5 bg-[var(--card-bg-elevated)] border-b border-[var(--card-border)] select-none">
+      <div class="flex items-center gap-2">
+        <span class="material-icons text-sm text-[var(--primary-accent)]">picture_in_picture_alt</span>
+        <span class="text-[12px] font-bold text-[var(--text-heading)] truncate max-w-[140px]" id="pip-dock-title">Picture-in-Picture</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <button id="pip-minimize-btn" class="p-1 text-[var(--text-muted)] hover:text-[var(--text-heading)] rounded transition-colors" title="Minimize / Restore">
+          <span class="material-icons text-sm">remove</span>
+        </button>
+        <button id="pip-expand-btn" class="p-1 text-[var(--text-muted)] hover:text-[var(--text-heading)] rounded transition-colors" title="Fullscreen Lightbox">
+          <span class="material-icons text-sm">open_in_full</span>
+        </button>
+        <button id="pip-close-btn" class="p-1 text-[var(--text-muted)] hover:text-[var(--danger-accent)] rounded transition-colors" title="Close PiP">
+          <span class="material-icons text-sm">close</span>
+        </button>
+      </div>
+    </div>
+    <!-- PiP Media Viewport -->
+    <div class="pip-media-wrapper relative bg-black aspect-video flex items-center justify-center overflow-hidden">
+      <div id="pip-media-content" class="w-full h-full flex items-center justify-center">
+        <!-- Dynamically injected picture or video -->
+      </div>
+      <div class="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] text-white/80 bg-black/60 backdrop-blur-sm px-2 py-1 rounded">
+        <span id="pip-status-text" class="flex items-center gap-1 font-mono">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-ping"></span> PIP LIVE
+        </span>
+        <span id="pip-type-badge" class="font-bold text-[#38bdf8]">MEDIA</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- LOGIN MODAL DIALOG                                                        -->
+  <!-- ========================================================================= -->
+  <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
+    <div class="card p-7 max-w-md w-full relative text-left border border-[var(--card-border)] bg-[var(--card-bg)] shadow-2xl">
+      <button id="login-modal-close" class="absolute top-4 right-4 text-[var(--text-muted)] hover:text-[var(--text-heading)] p-1">
+        <span class="material-icons text-xl">close</span>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-[12px] bg-gradient-to-tr from-[#2563eb] to-[#8b5cf6] flex items-center justify-center text-white shadow-md">
+          <span class="material-icons text-xl">lock_open</span>
+        </div>
+        <div>
+          <h3 class="text-[20px] font-bold text-[var(--text-heading)]">Sign In to NovaPulse</h3>
+          <p class="text-[12px] text-[var(--text-muted)]">Access real-time telemetry and incident control</p>
+        </div>
+      </div>
+
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-[12px] font-bold text-[var(--text-muted)] mb-1">Work Email</label>
+          <input type="email" id="login-email" required placeholder="alex.mercer@novapulse.ai" class="w-full px-3.5 py-2.5 rounded-[12px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] text-[14px] text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary-accent)]" />
+        </div>
+        <div>
+          <label class="block text-[12px] font-bold text-[var(--text-muted)] mb-1">Password</label>
+          <div class="relative">
+            <input type="password" id="login-password" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-[12px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] text-[14px] text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary-accent)] pr-10" />
+            <button type="button" id="toggle-login-pwd" class="absolute right-3 top-2.5 text-[var(--text-muted)] hover:text-[var(--text-heading)]">
+              <span class="material-icons text-base">visibility</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-[12px]">
+          <label class="flex items-center gap-1.5 cursor-pointer text-[var(--text-muted)]">
+            <input type="checkbox" id="login-remember" checked class="rounded border-[var(--card-border)] text-[var(--primary-accent)]" />
+            <span>Remember session</span>
+          </label>
+          <a href="#" id="forgot-password-link" class="text-[var(--primary-accent)] hover:underline">Forgot password?</a>
+        </div>
+
+        <button type="submit" id="login-submit-btn" class="button-primary w-full !py-2.5 !bg-[#2563eb] !border-[#2563eb] text-white font-bold text-[14px]">
+          <span class="material-icons text-base">login</span> Sign In
+        </button>
+
+        <button type="button" id="quick-demo-login-btn" class="button-primary w-full !py-2 text-[var(--text-muted)] hover:text-[var(--text-heading)] !border-[var(--card-border)] text-[12px]">
+          <span class="material-icons text-sm text-[var(--validation-accent)]">bolt</span> 1-Click Demo Login (Lead SRE)
+        </button>
+      </form>
+
+      <div class="mt-4 pt-4 border-t border-[var(--card-border)] text-center text-[12px] text-[var(--text-muted)]">
+        Don't have an account? <button id="switch-to-register" class="text-[var(--primary-accent)] font-bold hover:underline">Register Free</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- REGISTER MODAL DIALOG                                                     -->
+  <!-- ========================================================================= -->
+  <div id="register-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
+    <div class="card p-7 max-w-md w-full relative text-left border border-[var(--card-border)] bg-[var(--card-bg)] shadow-2xl">
+      <button id="register-modal-close" class="absolute top-4 right-4 text-[var(--text-muted)] hover:text-[var(--text-heading)] p-1">
+        <span class="material-icons text-xl">close</span>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-[12px] bg-gradient-to-tr from-[#10b981] to-[#2563eb] flex items-center justify-center text-white shadow-md">
+          <span class="material-icons text-xl">person_add</span>
+        </div>
+        <div>
+          <h3 class="text-[20px] font-bold text-[var(--text-heading)]">Create NovaPulse Account</h3>
+          <p class="text-[12px] text-[var(--text-muted)]">Deploy full-stack API observability in seconds</p>
+        </div>
+      </div>
+
+      <form id="register-form" class="space-y-3.5">
+        <div>
+          <label class="block text-[12px] font-bold text-[var(--text-muted)] mb-1">Full Name</label>
+          <input type="text" id="reg-name" required placeholder="Alex Mercer" class="w-full px-3.5 py-2.5 rounded-[12px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] text-[14px] text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary-accent)]" />
+        </div>
+        <div>
+          <label class="block text-[12px] font-bold text-[var(--text-muted)] mb-1">Work Email</label>
+          <input type="email" id="reg-email" required placeholder="alex@company.com" class="w-full px-3.5 py-2.5 rounded-[12px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] text-[14px] text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary-accent)]" />
+        </div>
+        <div>
+          <label class="block text-[12px] font-bold text-[var(--text-muted)] mb-1">Primary Role</label>
+          <select id="reg-role" class="w-full px-3.5 py-2.5 rounded-[12px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] text-[14px] text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary-accent)]">
+            <option value="Lead Site Reliability Engineer">Lead Site Reliability Engineer (SRE)</option>
+            <option value="Principal Backend Architect">Principal Backend Architect</option>
+            <option value="DevOps Automation Specialist">DevOps Automation Specialist</option>
+            <option value="Security & Compliance Auditor">Security & Compliance Auditor</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[12px] font-bold text-[var(--text-muted)] mb-1">Password</label>
+          <input type="password" id="reg-password" required placeholder="Minimum 8 characters" class="w-full px-3.5 py-2.5 rounded-[12px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] text-[14px] text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary-accent)]" />
+        </div>
+
+        <button type="submit" id="register-submit-btn" class="button-primary w-full !py-2.5 !bg-[#10b981] !border-[#10b981] text-white font-bold text-[14px]">
+          <span class="material-icons text-base">how_to_reg</span> Register Free
+        </button>
+      </form>
+
+      <div class="mt-4 pt-4 border-t border-[var(--card-border)] text-center text-[12px] text-[var(--text-muted)]">
+        Already have an account? <button id="switch-to-login" class="text-[var(--primary-accent)] font-bold hover:underline">Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Destructive Confirmation Modal -->
+  <div id="confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+    <div class="card p-6 max-w-md w-full relative text-left border border-[var(--card-border)] bg-[var(--card-bg)] shadow-2xl">
+      <div class="flex items-center gap-3 text-[var(--validation-accent)] mb-3">
+        <span class="material-icons text-2xl">warning</span>
+        <h3 id="modal-title" class="text-[18px] font-bold text-[var(--text-heading)]">Confirm Action</h3>
+      </div>
+      <p id="modal-message" class="text-[14px] text-[var(--text-muted)] mb-6">Are you sure you want to proceed?</p>
+      <div class="flex items-center justify-end gap-3">
+        <button id="modal-cancel-btn" class="button-primary">Cancel</button>
+        <button id="modal-confirm-btn" class="button-primary !bg-[#ef4444] !border-[#ef4444] text-white">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Root Cause Analysis Detail Modal -->
+  <div id="rca-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
+    <div class="card p-6 max-w-2xl w-full relative max-h-[90vh] overflow-y-auto bg-[var(--card-bg)] border border-[var(--card-border)] shadow-2xl">
+      <div class="flex items-start justify-between border-b border-[var(--card-border)] pb-4 mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-[#3b82f6]/15 border border-[#3b82f6]/30 flex items-center justify-center text-[#3b82f6]">
+            <span class="material-icons text-xl">biotech</span>
+          </div>
+          <div>
+            <h3 id="rca-modal-title" class="text-[18px] font-bold text-[var(--text-heading)]">Root Cause Analysis</h3>
+            <p id="rca-modal-subtitle" class="text-[12px] text-[var(--text-muted)]">Autonomous Telemetry Incident Investigation</p>
+          </div>
+        </div>
+        <button id="rca-modal-close" class="text-[var(--text-muted)] hover:text-[var(--text-heading)] p-1">
+          <span class="material-icons text-xl">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-[14px]">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3.5 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)]">
+            <span class="text-[11px] text-[var(--text-muted)] block mb-1 font-medium">STATUS CODE</span>
+            <span id="rca-status-code" class="text-[18px] font-bold text-[var(--validation-accent)]">500</span>
+          </div>
+          <div class="p-3.5 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)]">
+            <span class="text-[11px] text-[var(--text-muted)] block mb-1 font-medium">MEASURED LATENCY</span>
+            <span id="rca-latency" class="text-[18px] font-bold text-[var(--text-heading)]">65 ms</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider block mb-1">Root Cause Diagnosis</label>
+          <div id="rca-root-cause" class="p-4 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] text-[var(--danger-accent)] font-mono text-[13px] leading-relaxed">
+            Diagnosing root cause...
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[12px] font-bold text-[var(--text-muted)] uppercase tracking-wider block mb-1">Recommended Remediation Runbook</label>
+          <div id="rca-remediation" class="p-4 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] text-[var(--text-main)] text-[13px] whitespace-pre-line leading-relaxed">
+            Steps...
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-6 flex justify-end">
+        <button id="rca-modal-dismiss" class="button-primary">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="border-b border-[var(--nav-border)] bg-[var(--nav-bg)] backdrop-blur-md sticky top-0 z-40 transition-colors">
+    <div class="max-w-[1200px] mx-auto px-4 h-16 flex items-center justify-between gap-3">
+      
+      <!-- Brand & NovaPulse Logo -->
+      <div class="flex items-center gap-3 flex-shrink-0">
+        <a href="/" class="flex items-center gap-2.5">
+          <!-- Sleek Geometric NovaPulse Logo -->
+          <svg class="w-8 h-8 flex-shrink-0" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="36" height="36" rx="10" fill="url(#novapulse-grad)" />
+            <path d="M7 18h5l3-7 4 14 4-9 3 5h6" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="23" cy="16" r="2.2" fill="#38bdf8" />
+            <defs>
+              <linearGradient id="novapulse-grad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#2563eb" />
+                <stop offset="0.5" stop-color="#3b82f6" />
+                <stop offset="1" stop-color="#8b5cf6" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="flex flex-col">
+            <span class="font-bold text-[17px] tracking-tight text-[var(--text-heading)] flex items-center gap-2">
+              NovaPulse AI
+              <span class="badge-pill !text-[10px] !py-0.5 !px-2">MONITOR</span>
+            </span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Live Heartbeat Pulse Indicator (Material Icons + ECG) -->
+      <div class="hidden xl:flex items-center gap-3 px-3.5 py-1 rounded-full card-elevated border border-[var(--card-border)] flex-shrink-0">
+        <span class="text-[11px] font-bold text-[var(--text-muted)] flex items-center gap-1 font-mono">
+          <span class="w-2 h-2 rounded-full bg-[#10b981] beacon-healthy"></span> PULSE:
+        </span>
+        <svg class="w-20 h-4 overflow-visible" viewBox="0 0 100 20">
+          <path class="ecg-path fill-none stroke-[var(--primary-accent)] stroke-2" d="M0 10 L25 10 L30 3 L35 17 L40 7 L45 12 L50 10 L100 10" />
+        </svg>
+      </div>
+
+      <!-- Action Bar (Status Pill, Theme Toggle, Sound Toggle, Refresh, Auth Chip) -->
+      <div class="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
+        <!-- Service Status Pill -->
+        <div id="service-status-pill" class="badge-pill-emerald flex-shrink-0">
+          <span id="service-status-dot" class="w-2 h-2 rounded-full bg-[#10b981] beacon-healthy"></span>
+          <span id="service-status-text">Healthy</span>
+        </div>
+
+        <!-- Dark / Light Theme Toggle -->
+        <button id="theme-toggle-btn" class="button-primary !px-3" title="Toggle Theme (Dark / Light)">
+          <span class="material-icons text-base text-[var(--validation-accent)]" id="theme-icon">light_mode</span>
+        </button>
+
+        <!-- Audio Sound Toggle -->
+        <button id="sound-toggle-btn" class="button-primary !px-3" title="Toggle Web Audio Synthesizer">
+          <span class="material-icons text-base text-[var(--primary-accent)]" id="sound-icon">volume_up</span>
+        </button>
+
+        <!-- Live Refresh -->
+        <button id="refresh-metrics-btn" class="button-primary !px-3" title="Fetch Live Metrics">
+          <span class="material-icons text-base text-[var(--text-main)]" id="refresh-icon">refresh</span>
+        </button>
+
+        <!-- Auth State Chip / Buttons -->
+        <div id="auth-header-container" class="flex items-center gap-2 ml-1">
+          <!-- Dynamically populated with Sign In or User Profile -->
+          <button id="nav-btn-login" class="button-primary !py-1.5 !px-3.5 text-[12px] font-bold">Sign In</button>
+          <button id="nav-btn-register" class="button-primary !py-1.5 !px-3.5 !bg-[#2563eb] !border-[#2563eb] text-white text-[12px] font-bold">Register</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Bar Links -->
+    <div class="max-w-[1200px] mx-auto px-4 flex items-center gap-1.5 overflow-x-auto text-[13px] sm:text-[14px] font-medium py-1.5 scrollbar-none border-t border-[var(--nav-border)]" id="main-nav-bar">
+      <!-- Public Home Tab (Default when logged out, accessible any time) -->
+      <button class="nav-tab active" data-tab="tab-public-home" id="nav-btn-home">
+        <span class="material-icons text-base">home</span>
+        <span>Home</span>
+      </button>
+
+      <!-- Gated Operational Console Tabs (Protected behind Login) -->
+      <button class="nav-tab console-tab" data-tab="tab-overview" id="nav-btn-overview" data-gated="true">
+        <span class="material-icons text-base">dashboard</span>
+        <span>Overview</span>
+        <span class="auth-lock-icon material-icons text-[12px] text-[var(--text-muted)] ml-0.5">lock</span>
+      </button>
+      <button class="nav-tab console-tab" data-tab="tab-simulations" id="nav-btn-simulations" data-gated="true">
+        <span class="material-icons text-base">bolt</span>
+        <span>Chaos Sandbox</span>
+        <span class="auth-lock-icon material-icons text-[12px] text-[var(--text-muted)] ml-0.5">lock</span>
+      </button>
+      <button class="nav-tab console-tab" data-tab="tab-alerts" id="nav-btn-alerts" data-gated="true">
+        <span class="material-icons text-base">notifications</span>
+        <span>Alerts Center</span>
+        <span id="nav-alerts-badge" class="px-1.5 py-0.2 rounded-full text-[10px] bg-[#f59e0b]/20 text-[var(--validation-accent)] font-mono font-bold">0</span>
+        <span class="auth-lock-icon material-icons text-[12px] text-[var(--text-muted)] ml-0.5">lock</span>
+      </button>
+      <button class="nav-tab console-tab" data-tab="tab-ai" id="nav-btn-ai" data-gated="true">
+        <span class="material-icons text-base">psychology</span>
+        <span>AI SRE Advisor</span>
+        <span class="auth-lock-icon material-icons text-[12px] text-[var(--text-muted)] ml-0.5">lock</span>
+      </button>
+      <button class="nav-tab console-tab" data-tab="tab-explorer" id="nav-btn-explorer" data-gated="true">
+        <span class="material-icons text-base">terminal</span>
+        <span>Endpoint Explorer</span>
+        <span class="auth-lock-icon material-icons text-[12px] text-[var(--text-muted)] ml-0.5">lock</span>
+      </button>
+      <button class="nav-tab console-tab" data-tab="tab-features" id="nav-btn-features" data-gated="true">
+        <span class="material-icons text-base text-[var(--primary-accent)]">auto_awesome</span>
+        <span>Extra Features</span>
+        <span class="auth-lock-icon material-icons text-[12px] text-[var(--text-muted)] ml-0.5">lock</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-docs" id="nav-btn-docs">
+        <span class="material-icons text-base">menu_book</span>
+        <span>Documentation</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTINUOUS MARQUEE TICKER (NAMED KEYFRAME: marquee-x) -->
+  <section class="max-w-[1200px] mx-auto px-4 py-3 relative z-10">
+    <div class="marquee-container py-2.5 border border-[var(--card-border)] bg-[var(--card-bg)] rounded-[18px] shadow-sm">
+      <div class="marquee-content font-mono text-[13px] text-[var(--text-muted)]">
+        <span class="flex items-center gap-2"><span class="text-[#10b981]">●</span> UPTIME: <strong class="text-[var(--text-heading)]" id="ticker-uptime">99.98%</strong></span>
+        <span class="opacity-30">/</span>
+        <span class="flex items-center gap-2"><span class="text-[#3b82f6]">●</span> AVG LATENCY: <strong class="text-[var(--text-heading)]" id="ticker-latency">-- ms</strong></span>
+        <span class="opacity-30">/</span>
+        <span class="flex items-center gap-2"><span class="text-[#f59e0b]">●</span> FAILED REQS: <strong class="text-[var(--text-heading)]" id="ticker-failed">0</strong></span>
+        <span class="opacity-30">/</span>
+        <span class="flex items-center gap-2"><span class="text-[#10b981]">●</span> SLA STATUS: <strong class="text-[var(--text-heading)]">NOMINAL</strong></span>
+        <span class="opacity-30">/</span>
+        <span class="flex items-center gap-2"><span class="text-[#3b82f6]">●</span> PIP FLOATING DOCK: <strong class="text-[var(--text-heading)]">ENABLED</strong></span>
+        <span class="opacity-30">/</span>
+        <span class="flex items-center gap-2"><span class="text-[#8b5cf6]">●</span> 3D SPATIAL ENGINE: <strong class="text-[var(--text-heading)]">ONLINE</strong></span>
+        <span class="opacity-30">/</span>
+        <!-- Duplicate for continuous scroll loop -->
+        <span class="flex items-center gap-2"><span class="text-[#10b981]">●</span> UPTIME: <strong class="text-[var(--text-heading)]" id="ticker-uptime-2">99.98%</strong></span>
+        <span class="opacity-30">/</span>
+        <span class="flex items-center gap-2"><span class="text-[#3b82f6]">●</span> AVG LATENCY: <strong class="text-[var(--text-heading)]" id="ticker-latency-2">32 ms</strong></span>
+        <span class="opacity-30">/</span>
+        <span class="flex items-center gap-2"><span class="text-[#f59e0b]">●</span> FAILED REQS: <strong class="text-[var(--text-heading)]" id="ticker-failed-2">0</strong></span>
+        <span class="opacity-30">/</span>
+        <span class="flex items-center gap-2"><span class="text-[#10b981]">●</span> SLA STATUS: <strong class="text-[var(--text-heading)]">NOMINAL</strong></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN TAB CONTENT CONTAINER (MAX-WIDTH: 1200PX) -->
+  <main class="max-w-[1200px] mx-auto px-4 py-4 relative z-10" id="main-content">
+
+    <!-- ========================================================================= -->
+    <!-- PUBLIC HOMEPAGE INTERFACE (DEDICATED MARKETING & OVERVIEW PORTAL)         -->
+    <!-- ========================================================================= -->
+    <div id="tab-public-home" class="tab-pane space-y-8">
+      
+      <!-- HERO SHOWCASE -->
+      <section class="card p-6 sm:p-10 flex flex-col items-center text-center relative overflow-hidden bg-gradient-to-b from-[var(--card-bg-elevated)] to-[var(--card-bg)] border border-[var(--card-border)] shadow-2xl">
+        <div class="inline-flex items-center gap-2 mb-3">
+          <span class="badge-pill">AUTONOMOUS OBSERVABILITY SUITE</span>
+          <span class="badge-pill-emerald flex items-center gap-1 font-mono text-[10px]">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-ping"></span>
+            FASTAPI v1.0 ENTERPRISE
+          </span>
+        </div>
+        
+        <h1 class="text-[var(--text-heading)] text-[28px] sm:text-[44px] font-extrabold tracking-tight max-w-[900px] leading-tight mb-3">
+          High-Velocity API Monitoring, Chaos Engineering & AI SRE
+        </h1>
+        
+        <p class="text-[var(--text-muted)] text-[14px] sm:text-[16px] max-w-[760px] leading-relaxed mb-6 font-normal">
+          Inspect sub-millisecond request latencies, simulate real-world service deadlocks & rate limits, and resolve incidents with autonomous heuristic root-cause analysis on spatial 3D surfaces.
+        </p>
+
+        <!-- Primary Call to Action Buttons -->
+        <div class="flex flex-wrap items-center justify-center gap-3 mb-8">
+          <button class="button-primary !py-3 !px-6 !bg-[#2563eb] !border-[#2563eb] text-white font-bold text-[14px] shadow-lg shadow-blue-500/25 flex items-center gap-2 hover:scale-[1.02] transition-transform" id="public-btn-demo">
+            <span class="material-icons text-base text-[var(--validation-accent)]">bolt</span>
+            <span>Launch Console (1-Click SRE Demo)</span>
+          </button>
+          
+          <button class="button-primary !py-3 !px-6 text-[14px] font-medium flex items-center gap-2" id="public-btn-login">
+            <span class="material-icons text-base">login</span>
+            <span>Sign In to Console</span>
+          </button>
+          
+          <button class="button-primary !py-3 !px-5 text-[14px] text-[var(--text-muted)] hover:text-[var(--text-heading)]" id="public-btn-features-scroll">
+            <span class="material-icons text-base">explore</span>
+            <span>Explore Features</span>
+          </button>
+        </div>
+
+        <!-- Featured 3D Video Loop with Picture-in-Picture Button -->
+        <div class="w-full max-w-[980px] relative rounded-[22px] overflow-hidden border border-[var(--card-border)] shadow-2xl group">
+          <button class="pip-trigger-btn absolute top-3 left-3 px-3 py-1.5 rounded-full bg-black/75 hover:bg-black/90 backdrop-blur-md text-white text-[12px] font-bold flex items-center gap-1.5 border border-white/30 z-30 shadow-lg" 
+            data-media-src="https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/designs/feathers-atlas-3d.mp4" 
+            data-media-type="video" 
+            data-media-title="NovaPulse Real-Time Telemetry Feed" 
+            title="Pop-out in Picture-in-Picture Dock">
+            <span class="material-icons text-sm text-[#38bdf8]">picture_in_picture_alt</span>
+            <span>Pop-out PiP</span>
+          </button>
+
+          <video autoplay loop muted playsinline crossOrigin="anonymous" class="w-full h-[220px] sm:h-[320px] object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-300">
+            <source src="https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/designs/feathers-atlas-3d.mp4" type="video/mp4">
+          </video>
+          <div class="absolute inset-0 bg-gradient-to-t from-[var(--card-bg)] via-transparent to-transparent pointer-events-none"></div>
+          <div class="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-[var(--text-muted)]">
+            <span class="flex items-center gap-2 font-mono text-[var(--text-heading)] font-semibold">
+              <span class="w-2 h-2 rounded-full bg-[#10b981] animate-ping"></span>
+              LIVE FASTAPI TELEMETRY STREAM
+            </span>
+            <span class="badge-pill !text-[10px]">3D PERSPECTIVE ENGINE</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6 CORE PILLARS SHOWCASE (FEATURES) -->
+      <section id="public-features-section" class="space-y-4">
+        <div class="text-center max-w-2xl mx-auto space-y-1.5 mb-6">
+          <span class="badge-pill">PLATFORM CAPABILITIES</span>
+          <h2 class="text-[24px] sm:text-[32px] font-bold text-[var(--text-heading)]">Engineered for High-Reliability APIs</h2>
+          <p class="text-[13px] sm:text-[14px] text-[var(--text-muted)]">Everything required to monitor, stress-test, and protect production FastAPI services.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Pillar 1 -->
+          <div class="card p-5 space-y-3 hover:border-[var(--primary-accent)]/50 transition-colors">
+            <div class="w-10 h-10 rounded-[14px] bg-[#3b82f6]/15 border border-[#3b82f6]/30 flex items-center justify-center text-[#3b82f6]">
+              <span class="material-icons text-xl">speed</span>
+            </div>
+            <h3 class="text-[17px] font-bold text-[var(--text-heading)]">Sub-Millisecond Telemetry</h3>
+            <p class="text-[13px] text-[var(--text-muted)] leading-relaxed">
+              High-performance ASGI middleware computes average, p95, and p99 latency percentiles with nanosecond precision without adding runtime overhead.
+            </p>
+          </div>
+
+          <!-- Pillar 2 -->
+          <div class="card p-5 space-y-3 hover:border-[var(--primary-accent)]/50 transition-colors">
+            <div class="w-10 h-10 rounded-[14px] bg-[#f59e0b]/15 border border-[#f59e0b]/30 flex items-center justify-center text-[var(--validation-accent)]">
+              <span class="material-icons text-xl">bolt</span>
+            </div>
+            <h3 class="text-[17px] font-bold text-[var(--text-heading)]">4-Scenario Chaos Sandbox</h3>
+            <p class="text-[13px] text-[var(--text-muted)] leading-relaxed">
+              Trigger 401 Auth Failures, 504 Gateway Timeouts, 500 Database Deadlocks, and 429 Token Bucket Exhaustion to test team response runbooks.
+            </p>
+          </div>
+
+          <!-- Pillar 3 -->
+          <div class="card p-5 space-y-3 hover:border-[var(--primary-accent)]/50 transition-colors">
+            <div class="w-10 h-10 rounded-[14px] bg-[#8b5cf6]/15 border border-[#8b5cf6]/30 flex items-center justify-center text-[#8b5cf6]">
+              <span class="material-icons text-xl">psychology</span>
+            </div>
+            <h3 class="text-[17px] font-bold text-[var(--text-heading)]">AI SRE Root-Cause Engine</h3>
+            <p class="text-[13px] text-[var(--text-muted)] leading-relaxed">
+              Real-time heuristic intelligence isolates incident causes, estimates blast radius, and generates copy-paste remediation code immediately.
+            </p>
+          </div>
+
+          <!-- Pillar 4 -->
+          <div class="card p-5 space-y-3 hover:border-[var(--primary-accent)]/50 transition-colors">
+            <div class="w-10 h-10 rounded-[14px] bg-[#10b981]/15 border border-[#10b981]/30 flex items-center justify-center text-[#10b981]">
+              <span class="material-icons text-xl">notifications_active</span>
+            </div>
+            <h3 class="text-[17px] font-bold text-[var(--text-heading)]">Multi-Channel Alert Dispatch</h3>
+            <p class="text-[13px] text-[var(--text-muted)] leading-relaxed">
+              Instant alerts dispatched across Slack incoming webhooks, corporate SMTP email, and Twilio emergency phone SMS dispatchers.
+            </p>
+          </div>
+
+          <!-- Pillar 5 -->
+          <div class="card p-5 space-y-3 hover:border-[var(--primary-accent)]/50 transition-colors">
+            <div class="w-10 h-10 rounded-[14px] bg-[#06b6d4]/15 border border-[#06b6d4]/30 flex items-center justify-center text-[#06b6d4]">
+              <span class="material-icons text-xl">calculate</span>
+            </div>
+            <h3 class="text-[17px] font-bold text-[var(--text-heading)]">SLA Downtime Budget Math</h3>
+            <p class="text-[13px] text-[var(--text-muted)] leading-relaxed">
+              Model annual, monthly, and weekly error budgets from 98.0% to 99.999% Five-Nines and export certified JSON compliance audit reports.
+            </p>
+          </div>
+
+          <!-- Pillar 6 -->
+          <div class="card p-5 space-y-3 hover:border-[var(--primary-accent)]/50 transition-colors">
+            <div class="w-10 h-10 rounded-[14px] bg-[#ec4899]/15 border border-[#ec4899]/30 flex items-center justify-center text-[#ec4899]">
+              <span class="material-icons text-xl">shield</span>
+            </div>
+            <h3 class="text-[17px] font-bold text-[var(--text-heading)]">Self-Healing Circuit Breaker</h3>
+            <p class="text-[13px] text-[var(--text-muted)] leading-relaxed">
+              Autonomous load-shedding prevents worker thread starvation and protects SQLite/Postgres backends from cascading database lockups.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- LOCKED OPERATIONAL CONSOLE PREVIEW -->
+      <section class="card p-6 sm:p-8 relative overflow-hidden border-2 border-[var(--primary-accent)]/40 bg-gradient-to-b from-[var(--card-bg-elevated)] to-[var(--card-bg)]">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="space-y-3 max-w-xl text-left">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f59e0b]/15 text-[var(--validation-accent)] border border-[#f59e0b]/30 font-bold text-[12px]">
+              <span class="material-icons text-base">lock</span>
+              <span>OPERATIONAL CONSOLE LOCKED</span>
+            </div>
+            <h2 class="text-[22px] sm:text-[28px] font-bold text-[var(--text-heading)]">
+              Sign In to Unlock Full Sandbox & Telemetry Cockpit
+            </h2>
+            <p class="text-[13px] sm:text-[14px] text-[var(--text-muted)] leading-relaxed">
+              Live chaos execution, incident acknowledgment tables, custom REST payload execution, and AI SRE advice are restricted to authenticated operators. Experience the full suite instantly with 1-Click Demo Login.
+            </p>
+            <div class="flex flex-wrap items-center gap-3 pt-2">
+              <button class="button-primary !py-2.5 !px-5 !bg-[#2563eb] !border-[#2563eb] text-white font-bold text-[13px] flex items-center gap-1.5" id="locked-banner-demo-btn">
+                <span class="material-icons text-sm text-[var(--validation-accent)]">bolt</span>
+                <span>1-Click SRE Demo Login</span>
+              </button>
+              <button class="button-primary !py-2.5 !px-4 text-[13px] flex items-center gap-1.5" id="locked-banner-login-btn">
+                <span class="material-icons text-sm">login</span>
+                <span>Sign In</span>
+              </button>
+              <button class="button-primary !py-2.5 !px-4 text-[13px] text-[var(--text-muted)] hover:text-[var(--text-heading)]" id="locked-banner-register-btn">
+                <span class="material-icons text-sm">person_add</span>
+                <span>Register Free</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Visual Teaser Cards (Frosted & Locked) -->
+          <div class="w-full md:w-auto flex flex-col sm:flex-row gap-3">
+            <div class="p-4 rounded-[18px] bg-black/40 backdrop-blur-md border border-white/10 text-center w-full sm:w-[170px] space-y-2">
+              <span class="material-icons text-3xl text-[var(--primary-accent)]">bolt</span>
+              <div class="text-[13px] font-bold text-white">Chaos Sandbox</div>
+              <div class="text-[11px] text-white/60">4 Failure Modes</div>
+              <span class="inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/40">LOCKED</span>
+            </div>
+            <div class="p-4 rounded-[18px] bg-black/40 backdrop-blur-md border border-white/10 text-center w-full sm:w-[170px] space-y-2">
+              <span class="material-icons text-3xl text-[#10b981]">notifications</span>
+              <div class="text-[13px] font-bold text-white">Alerts Center</div>
+              <div class="text-[11px] text-white/60">Multi-Channel Proof</div>
+              <span class="inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/40">LOCKED</span>
+            </div>
+            <div class="p-4 rounded-[18px] bg-black/40 backdrop-blur-md border border-white/10 text-center w-full sm:w-[170px] space-y-2">
+              <span class="material-icons text-3xl text-[#8b5cf6]">psychology</span>
+              <div class="text-[13px] font-bold text-white">AI SRE Advisor</div>
+              <div class="text-[11px] text-white/60">Neural Telemetry</div>
+              <span class="inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/40">LOCKED</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ENTERPRISE ARCHITECTURE OVERVIEW -->
+      <section id="public-arch-section" class="card p-6 space-y-3">
+        <h3 class="text-[20px] font-bold text-[var(--text-heading)] flex items-center gap-2">
+          <span class="material-icons text-[var(--primary-accent)] text-xl">account_tree</span>
+          FastAPI Observability Architecture
+        </h3>
+        <p class="text-[13px] text-[var(--text-muted)]">
+          Every HTTP request passes through non-blocking ASGI instrumentation before reaching REST routes, storing metrics into SQLite WAL with Prometheus scraping support.
+        </p>
+        <pre class="text-[11px] sm:text-[12px] leading-tight overflow-x-auto p-4 rounded-[14px]">
++-----------------------------------------------------------------------------------------------+
+|                                    INCOMING CLIENT TRAFFIC                                    |
++-----------------------------------------------------------------------------------------------+
+                                                |
+                                                v
++-----------------------------------------------------------------------------------------------+
+|                           FastAPI ASGI Monitoring Middleware                                  |
+|   - Nanosecond Timer  - HTTP Status Classifier  - Alert Threshold Evaluator  - SQLite WAL     |
++-----------------------------------------------------------------------------------------------+
+           |                                    |                                    |
+           v                                    v                                    v
++-----------------------+            +-----------------------+            +---------------------+
+|   REST Application    |            |   Observability API   |            |   AI SRE Advisor    |
+|   - /health (Live)    |            |   - /metrics (Prom)   |            |   - Gemini 1.5      |
+|   - /users (Dir)      |            |   - /api/metrics/*    |            |   - Heuristic RCA   |
+|   - /products (Cache) |            |   - /api/alerts       |            |   - Runbook Engine  |
++-----------------------+            +-----------------------+            +---------------------+
+        </pre>
+      </section>
+
+      <!-- TRUST BENCHMARKS -->
+      <section class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+        <div class="card p-4">
+          <span class="text-[24px] sm:text-[32px] font-extrabold text-[var(--text-heading)] font-mono block">99.99%</span>
+          <span class="text-[11px] text-[var(--text-muted)] font-medium">Uptime Guarantee</span>
+        </div>
+        <div class="card p-4">
+          <span class="text-[24px] sm:text-[32px] font-extrabold text-[var(--primary-accent)] font-mono block">&lt; 1.2ms</span>
+          <span class="text-[11px] text-[var(--text-muted)] font-medium">Middleware Overhead</span>
+        </div>
+        <div class="card p-4">
+          <span class="text-[24px] sm:text-[32px] font-extrabold text-[var(--validation-accent)] font-mono block">4 Modes</span>
+          <span class="text-[11px] text-[var(--text-muted)] font-medium">Chaos Failure Engine</span>
+        </div>
+        <div class="card p-4">
+          <span class="text-[24px] sm:text-[32px] font-extrabold text-[#10b981] font-mono block">100%</span>
+          <span class="text-[11px] text-[var(--text-muted)] font-medium">Prometheus Compatible</span>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: EXECUTIVE TELEMETRY DASHBOARD OVERVIEW (PROTECTED COCKPIT)         -->
+    <!-- ========================================================================= -->
+    <div id="tab-overview" class="tab-pane space-y-6 hidden">
+      
+      <!-- OPERATIONAL COCKPIT BANNER -->
+      <div class="card p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-[var(--card-bg-elevated)] to-[var(--card-bg)] border border-[var(--card-border)]">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-[14px] bg-[#2563eb]/15 border border-[#2563eb]/30 flex items-center justify-center text-[var(--primary-accent)] flex-shrink-0">
+            <span class="material-icons text-2xl">speed</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-[18px] sm:text-[20px] font-bold text-[var(--text-heading)]">Real-Time Telemetry Cockpit</h2>
+              <span class="badge-pill-emerald !text-[10px]">LIVE STREAMING</span>
+            </div>
+            <p class="text-[12px] text-[var(--text-muted)] mt-0.5">Sub-millisecond percentiles, ASGI status distribution, and active incident alerts</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button class="button-primary !py-2 !px-3.5 text-[12px] !bg-[#2563eb] !border-[#2563eb] text-white flex items-center gap-1.5" id="cockpit-btn-chaos">
+            <span class="material-icons text-sm">bolt</span> Chaos Sandbox
+          </button>
+          <button class="button-primary !py-2 !px-3 text-[12px] flex items-center gap-1.5" id="cockpit-btn-ai">
+            <span class="material-icons text-sm text-[var(--primary-accent)]">psychology</span> SRE Advisor
+          </button>
+          <button class="button-primary !py-2 !px-3 text-[12px] flex items-center gap-1.5" id="cockpit-btn-features">
+            <span class="material-icons text-sm text-[var(--validation-accent)]">auto_awesome</span> SLA Calculator
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Core Executive Metric Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Card 1: API Availability -->
+        <div class="card p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3 text-[var(--text-muted)]">
+              <span class="text-[12px] font-bold uppercase tracking-wider">API Availability</span>
+              <span class="material-icons text-[var(--primary-accent)] text-xl">verified_user</span>
+            </div>
+            <div class="flex items-baseline gap-2">
+              <span id="metric-uptime" class="text-[34px] font-bold text-[var(--text-heading)] tracking-tight">--%</span>
+              <span id="metric-uptime-trend" class="badge-pill-emerald !text-[10px] !py-0.5">99.9% SLA</span>
+            </div>
+          </div>
+          <div class="w-full bg-[var(--card-bg-elevated)] rounded-full h-1.5 mt-4 overflow-hidden border border-[var(--card-border)]">
+            <div id="metric-uptime-bar" class="h-full bg-gradient-to-r from-[#2563eb] to-[#10b981] transition-all duration-700" style="width: 100%;"></div>
+          </div>
+          <span class="text-[11px] text-[var(--text-muted)] mt-2 block font-mono">Downtime based on 5xx responses</span>
+        </div>
+
+        <!-- Card 2: Average Response Time -->
+        <div class="card p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3 text-[var(--text-muted)]">
+              <span class="text-[12px] font-bold uppercase tracking-wider">Avg Latency</span>
+              <span class="material-icons text-[var(--primary-accent)] text-xl">speed</span>
+            </div>
+            <div class="flex items-baseline gap-2">
+              <span id="metric-latency" class="text-[34px] font-bold text-[var(--text-heading)] tracking-tight">-- ms</span>
+              <span id="metric-latency-badge" class="badge-pill-emerald !text-[10px] !py-0.5">Nominal</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-[12px] text-[var(--text-muted)] mt-4 pt-2 border-t border-[var(--card-border)]">
+            <span>p95: <strong id="metric-p95" class="text-[var(--text-heading)]">-- ms</strong></span>
+            <span>p99: <strong id="metric-p99" class="text-[var(--text-heading)]">-- ms</strong></span>
+          </div>
+        </div>
+
+        <!-- Card 3: Total Requests -->
+        <div class="card p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3 text-[var(--text-muted)]">
+              <span class="text-[12px] font-bold uppercase tracking-wider">Total Requests</span>
+              <span class="material-icons text-[#10b981] text-xl">all_inclusive</span>
+            </div>
+            <div class="flex items-baseline gap-2">
+              <span id="metric-total-requests" class="text-[34px] font-bold text-[var(--text-heading)] tracking-tight">--</span>
+              <span class="text-[12px] text-[var(--text-muted)]">Calls</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-[12px] text-[var(--text-muted)] mt-4 pt-2 border-t border-[var(--card-border)]">
+            <span>Throughput:</span>
+            <span class="text-[var(--text-heading)] font-mono font-bold"><strong id="metric-rpm">0</strong> RPM</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Failed Requests -->
+        <div class="card p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3 text-[var(--text-muted)]">
+              <span class="text-[12px] font-bold uppercase tracking-wider">Failed Requests</span>
+              <span class="material-icons text-[var(--danger-accent)] text-xl">error_outline</span>
+            </div>
+            <div class="flex items-baseline gap-2">
+              <span id="metric-failed" class="text-[34px] font-bold text-[var(--danger-accent)] tracking-tight">--</span>
+              <span id="metric-error-rate" class="badge-pill-orange !text-[10px] !py-0.5">0% Err</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-[12px] text-[var(--text-muted)] mt-4 pt-2 border-t border-[var(--card-border)]">
+            <span>4xx: <strong id="metric-4xx" class="text-[var(--text-muted)]">0</strong></span>
+            <span>5xx: <strong id="metric-5xx" class="text-[var(--danger-accent)]">0</strong></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Real-Time Interactive Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Chart 1: Latency History Line Chart -->
+        <div class="card p-6 lg:col-span-2">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-[18px] font-bold text-[var(--text-heading)] flex items-center gap-2">
+                <span class="material-icons text-[var(--primary-accent)] text-xl">show_chart</span>
+                Response Time History (ms)
+              </h3>
+              <p class="text-[12px] text-[var(--text-muted)]">Rolling latency vs 3.0s SLA warning threshold</p>
+            </div>
+            <div class="flex items-center gap-3 text-[12px]">
+              <span class="inline-flex items-center gap-1.5 text-[var(--text-heading)] font-medium">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#2563eb]"></span> Avg Latency
+              </span>
+              <span class="inline-flex items-center gap-1.5 text-[var(--validation-accent)] font-medium">
+                <span class="w-2.5 h-2.5 rounded-full bg-[var(--validation-accent)]"></span> 3s Threshold
+              </span>
+            </div>
+          </div>
+          <div class="h-64 relative">
+            <canvas id="latencyChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 2: Status Code Distribution Donut -->
+        <div class="card p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-[18px] font-bold text-[var(--text-heading)] flex items-center gap-2">
+                <span class="material-icons text-[#10b981] text-xl">donut_large</span>
+                HTTP Status Codes
+              </h3>
+              <p class="text-[12px] text-[var(--text-muted)]">Traffic response breakdown</p>
+            </div>
+          </div>
+          <div class="h-48 relative flex items-center justify-center">
+            <canvas id="statusChart"></canvas>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-center text-xs mt-3 pt-3 border-t border-[var(--card-border)]">
+            <div class="p-2 rounded-[14px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)]">
+              <span class="block text-[#10b981] font-bold text-[16px]" id="stat-count-2xx">0</span>
+              <span class="text-[10px] text-[var(--text-muted)]">2xx OK</span>
+            </div>
+            <div class="p-2 rounded-[14px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)]">
+              <span class="block text-[var(--text-muted)] font-bold text-[16px]" id="stat-count-4xx">0</span>
+              <span class="text-[10px] text-[var(--text-muted)]">4xx Client</span>
+            </div>
+            <div class="p-2 rounded-[14px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)]">
+              <span class="block text-[var(--danger-accent)] font-bold text-[16px]" id="stat-count-5xx">0</span>
+              <span class="text-[10px] text-[var(--text-muted)]">5xx Server</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Failure Simulation Trigger Bar -->
+      <div class="card p-6 border-[var(--card-border)] bg-[var(--card-bg-elevated)]">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div>
+            <h3 class="text-[18px] font-bold text-[var(--text-heading)] flex items-center gap-2">
+              <span class="material-icons text-[var(--primary-accent)] text-xl">bolt</span>
+              Chaos Failure Simulation Triggers
+            </h3>
+            <p class="text-[12px] text-[var(--text-muted)]">Execute deterministic failure modes to validate real-time alerts and sound synthesis</p>
+          </div>
+          <button class="nav-to-simulations button-primary !text-[12px] !py-1.5" id="quick-to-sandbox">
+            Full Chaos Sandbox <span class="material-icons text-sm">arrow_forward</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <button class="sim-btn p-3.5 rounded-[18px] bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--primary-accent)] flex items-center gap-3 text-left transition-all" data-scenario="auth_failure">
+            <div class="w-9 h-9 rounded-full bg-[var(--card-bg-elevated)] flex items-center justify-center text-[var(--validation-accent)]">
+              <span class="material-icons text-lg">key</span>
+            </div>
+            <div>
+              <span class="text-[14px] font-bold text-[var(--text-heading)] block">1. Auth Failure</span>
+              <span class="text-[11px] text-[var(--text-muted)]">HTTP 401 Unauthorized</span>
+            </div>
+          </button>
+
+          <button class="sim-btn p-3.5 rounded-[18px] bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--primary-accent)] flex items-center gap-3 text-left transition-all" data-scenario="timeout">
+            <div class="w-9 h-9 rounded-full bg-[var(--card-bg-elevated)] flex items-center justify-center text-[var(--validation-accent)]">
+              <span class="material-icons text-lg">timer</span>
+            </div>
+            <div>
+              <span class="text-[14px] font-bold text-[var(--text-heading)] block">2. API Timeout</span>
+              <span class="text-[11px] text-[var(--text-muted)]">Latency &gt; 3.0 Seconds</span>
+            </div>
+          </button>
+
+          <button class="sim-btn p-3.5 rounded-[18px] bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--danger-accent)] flex items-center gap-3 text-left transition-all" data-scenario="server_error">
+            <div class="w-9 h-9 rounded-full bg-[var(--card-bg-elevated)] flex items-center justify-center text-[var(--danger-accent)]">
+              <span class="material-icons text-lg">report</span>
+            </div>
+            <div>
+              <span class="text-[14px] font-bold text-[var(--text-heading)] block">3. Server Error</span>
+              <span class="text-[11px] text-[var(--text-muted)]">HTTP 500 Crash</span>
+            </div>
+          </button>
+
+          <button class="sim-btn p-3.5 rounded-[18px] bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--primary-accent)] flex items-center gap-3 text-left transition-all" data-scenario="rate_limit">
+            <div class="w-9 h-9 rounded-full bg-[var(--card-bg-elevated)] flex items-center justify-center text-[var(--primary-accent)]">
+              <span class="material-icons text-lg">speed</span>
+            </div>
+            <div>
+              <span class="text-[14px] font-bold text-[var(--text-heading)] block">4. Rate Limit</span>
+              <span class="text-[11px] text-[var(--text-muted)]">HTTP 429 Quota</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Request Stream Table -->
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-[18px] font-bold text-[var(--text-heading)] flex items-center gap-2">
+              <span class="material-icons text-[var(--primary-accent)] text-xl">receipt_long</span>
+              Real-Time Request Stream
+            </h3>
+            <p class="text-[12px] text-[var(--text-muted)]">High-resolution telemetry logged to SQLite in real-time</p>
+          </div>
+          <span class="badge-pill !text-[10px]">POLLING 3S</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-[14px]">
+            <thead>
+              <tr class="border-b border-[var(--card-border)] text-[var(--text-muted)] uppercase tracking-wider text-[11px] font-bold">
+                <th class="py-2.5 px-3">Timestamp</th>
+                <th class="py-2.5 px-3">Method</th>
+                <th class="py-2.5 px-3">Path</th>
+                <th class="py-2.5 px-3">Status</th>
+                <th class="py-2.5 px-3">Latency</th>
+                <th class="py-2.5 px-3">Client IP</th>
+              </tr>
+            </thead>
+            <tbody id="logs-table-body" class="divide-y divide-[var(--card-border)]">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: CHAOS SIMULATIONS SANDBOX (WITH PIP ON ALL PICTURES & VIDEOS)      -->
+    <!-- ========================================================================= -->
+    <div id="tab-simulations" class="tab-pane space-y-6 hidden">
+      
+      <!-- NovaPulse Chaos Banner -->
+      <div class="card p-6 border-[var(--card-border)] relative overflow-hidden bg-[var(--card-bg-elevated)]">
+        <div class="relative z-10 max-w-2xl">
+          <span class="badge-pill mb-2">CHAOS ENGINEERING LAB</span>
+          <h2 class="text-[var(--text-heading)] text-[28px] font-bold mt-1">FastAPI Failure Modes & Root Cause Analysis</h2>
+          <p class="text-[var(--text-muted)] text-[14px] mt-2 leading-relaxed">
+            Trigger deterministic failure modes to test monitoring thresholds, synthesized audio tones, multi-channel alerts, and automated root cause analysis.
+          </p>
+        </div>
+      </div>
+
+      <!-- Scenarios Grid with Universal Picture-in-Picture on ALL Pictures & Videos -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Scenario 1: Auth Failure (Image / GIF with PiP Support!) -->
+        <div class="card p-6 flex flex-col justify-between overflow-hidden group">
+          <div>
+            <div class="w-full h-36 rounded-[18px] overflow-hidden mb-4 border border-[var(--card-border)] relative bg-[var(--card-bg-elevated)]">
+              <!-- PiP Trigger Button for Image -->
+              <button class="pip-trigger-btn absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-1.5 border border-white/30 z-30 shadow-md" data-media-src="https://motionsites.ai/assets/hero-apex-saas-preview-CbnBKSPv.gif" data-media-type="image" data-media-title="Scenario 1: 401 Auth Failure Preview" title="Open Image in Picture-in-Picture">
+                <span class="material-icons text-sm text-[#38bdf8]">picture_in_picture_alt</span>
+                <span>PiP</span>
+              </button>
+              <img src="https://motionsites.ai/assets/hero-apex-saas-preview-CbnBKSPv.gif" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="Auth Preview" />
+              <div class="absolute top-3 right-3 badge-pill-orange">401 UNAUTHORIZED</div>
+            </div>
+            <span class="text-[11px] text-[var(--text-muted)] font-mono uppercase font-bold block mb-1">Scenario 1</span>
+            <h3 class="text-[18px] font-bold text-[var(--text-heading)] mb-2">Invalid API Authentication</h3>
+            <p class="text-[14px] text-[var(--text-muted)] leading-relaxed mb-4">
+              Invokes <code class="text-[var(--text-heading)] bg-[var(--card-bg-elevated)] px-1.5 py-0.5 rounded border border-[var(--card-border)]">/api/auth/test</code> without a valid Bearer token. Confirms gateway interception and security alert trigger.
+            </p>
+          </div>
+          <button class="sim-btn button-primary w-full !py-2.5" data-scenario="auth_failure">
+            <span class="material-icons text-base">play_arrow</span> Trigger 401 Auth Failure
+          </button>
+        </div>
+
+        <!-- Scenario 2: API Timeout (Video with PiP Support!) -->
+        <div class="card p-6 flex flex-col justify-between overflow-hidden group">
+          <div>
+            <div class="w-full h-36 rounded-[18px] overflow-hidden mb-4 border border-[var(--card-border)] relative bg-[var(--card-bg-elevated)]">
+              <!-- PiP Trigger Button for Video -->
+              <button class="pip-trigger-btn absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-1.5 border border-white/30 z-30 shadow-md" data-media-src="https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/a/3dcha.mp4" data-media-type="video" data-media-title="Scenario 2: API Timeout Latency Preview" title="Open Video in Picture-in-Picture">
+                <span class="material-icons text-sm text-[#38bdf8]">picture_in_picture_alt</span>
+                <span>PiP</span>
+              </button>
+              <video autoplay loop muted playsinline crossOrigin="anonymous" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                <source src="https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/a/3dcha.mp4" type="video/mp4">
+              </video>
+              <div class="absolute top-3 right-3 badge-pill-orange">&gt; 3.0s SLA BREACH</div>
+            </div>
+            <span class="text-[11px] text-[var(--text-muted)] font-mono uppercase font-bold block mb-1">Scenario 2</span>
+            <h3 class="text-[18px] font-bold text-[var(--text-heading)] mb-2">API Latency / Timeout (&gt;3s)</h3>
+            <p class="text-[14px] text-[var(--text-muted)] leading-relaxed mb-4">
+              Invokes <code class="text-[var(--text-heading)] bg-[var(--card-bg-elevated)] px-1.5 py-0.5 rounded border border-[var(--card-border)]">/simulate-timeout</code> simulating upstream database query latency exceeding the 3-second SLA.
+            </p>
+          </div>
+          <button class="sim-btn button-primary w-full !py-2.5" data-scenario="timeout">
+            <span class="material-icons text-base">play_arrow</span> Trigger &gt;3s Timeout Delay
+          </button>
+        </div>
+
+        <!-- Scenario 3: Server Error (Image / GIF with PiP Support!) -->
+        <div class="card p-6 flex flex-col justify-between overflow-hidden group">
+          <div>
+            <div class="w-full h-36 rounded-[18px] overflow-hidden mb-4 border border-[var(--card-border)] relative bg-[var(--card-bg-elevated)]">
+              <!-- PiP Trigger Button for Image -->
+              <button class="pip-trigger-btn absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-1.5 border border-white/30 z-30 shadow-md" data-media-src="https://motionsites.ai/assets/hero-liquid-glass-agency-preview-Cr5Q9-lc.gif" data-media-type="image" data-media-title="Scenario 3: 500 Crash Deadlock Preview" title="Open Image in Picture-in-Picture">
+                <span class="material-icons text-sm text-[#38bdf8]">picture_in_picture_alt</span>
+                <span>PiP</span>
+              </button>
+              <img src="https://motionsites.ai/assets/hero-liquid-glass-agency-preview-Cr5Q9-lc.gif" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="Server Error Preview" />
+              <div class="absolute top-3 right-3 badge-pill-rose">HTTP 500 CRASH</div>
+            </div>
+            <span class="text-[11px] text-[var(--text-muted)] font-mono uppercase font-bold block mb-1">Scenario 3</span>
+            <h3 class="text-[18px] font-bold text-[var(--text-heading)] mb-2">Internal Server Error (Crash)</h3>
+            <p class="text-[14px] text-[var(--text-muted)] leading-relaxed mb-4">
+              Invokes <code class="text-[var(--text-heading)] bg-[var(--card-bg-elevated)] px-1.5 py-0.5 rounded border border-[var(--card-border)]">/simulate-error</code> triggering an unhandled database transaction deadlock inside the worker thread.
+            </p>
+          </div>
+          <button class="sim-btn button-primary w-full !py-2.5 !bg-[#ef4444]/15 !border-[#ef4444]/40 text-[#ef4444] hover:!bg-[#ef4444]/25" data-scenario="server_error">
+            <span class="material-icons text-base">play_arrow</span> Trigger 500 Server Crash
+          </button>
+        </div>
+
+        <!-- Scenario 4: Rate Limit Exceeded (Video with PiP Support!) -->
+        <div class="card p-6 flex flex-col justify-between overflow-hidden group">
+          <div>
+            <div class="w-full h-36 rounded-[18px] overflow-hidden mb-4 border border-[var(--card-border)] relative bg-[var(--card-bg-elevated)]">
+              <!-- PiP Trigger Button for Video -->
+              <button class="pip-trigger-btn absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-1.5 border border-white/30 z-30 shadow-md" data-media-src="https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/reelmark-hero-interaction.mp4" data-media-type="video" data-media-title="Scenario 4: 429 Rate Limit Quota Preview" title="Open Video in Picture-in-Picture">
+                <span class="material-icons text-sm text-[#38bdf8]">picture_in_picture_alt</span>
+                <span>PiP</span>
+              </button>
+              <video autoplay loop muted playsinline crossOrigin="anonymous" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                <source src="https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/aaaf/reelmark-hero-interaction.mp4" type="video/mp4">
+              </video>
+              <div class="absolute top-3 right-3 badge-pill">HTTP 429 LIMIT</div>
+            </div>
+            <span class="text-[11px] text-[var(--text-muted)] font-mono uppercase font-bold block mb-1">Scenario 4</span>
+            <h3 class="text-[18px] font-bold text-[var(--text-heading)] mb-2">Rate Limit Exceeded (HTTP 429)</h3>
+            <p class="text-[14px] text-[var(--text-muted)] leading-relaxed mb-4">
+              Invokes <code class="text-[var(--text-heading)] bg-[var(--card-bg-elevated)] px-1.5 py-0.5 rounded border border-[var(--card-border)]">/simulate-rate-limit</code> simulating a burst flood that depletes the 60 req/min token bucket.
+            </p>
+          </div>
+          <button class="sim-btn button-primary w-full !py-2.5" data-scenario="rate_limit">
+            <span class="material-icons text-base">play_arrow</span> Trigger 429 Rate Limit
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Simulation Execution History Table -->
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-[18px] font-bold text-[var(--text-heading)] flex items-center gap-2">
+              <span class="material-icons text-[var(--primary-accent)] text-xl">history</span>
+              Simulation Audit Trail & Root Cause Output
+            </h3>
+            <p class="text-[12px] text-[var(--text-muted)]">Click inspect to view technical diagnosis and remediation</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-[14px]">
+            <thead>
+              <tr class="border-b border-[var(--card-border)] text-[var(--text-muted)] uppercase tracking-wider text-[11px] font-bold">
+                <th class="py-2.5 px-3">Time</th>
+                <th class="py-2.5 px-3">Scenario</th>
+                <th class="py-2.5 px-3">Endpoint</th>
+                <th class="py-2.5 px-3">Status</th>
+                <th class="py-2.5 px-3">Duration</th>
+                <th class="py-2.5 px-3">Root Cause Output</th>
+                <th class="py-2.5 px-3">Action</th>
+              </tr>
+            </thead>
+            <tbody id="sim-history-tbody" class="divide-y divide-[var(--card-border)]">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: ALERTS & INCIDENTS CENTER                                          -->
+    <!-- ========================================================================= -->
+    <div id="tab-alerts" class="tab-pane space-y-6 hidden">
+      
+      <!-- Configured Alert Rules Reference Banner -->
+      <div class="card p-6">
+        <h3 class="text-[18px] font-bold text-[var(--text-heading)] mb-3 flex items-center gap-2">
+          <span class="material-icons text-[var(--primary-accent)] text-xl">tune</span>
+          Active Monitoring Alert Rules & Thresholds
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-[14px]">
+          <div class="p-4 rounded-[18px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)]">
+            <span class="text-[var(--text-muted)] block text-[11px] uppercase font-bold">1. API Downtime</span>
+            <span class="font-bold text-[var(--validation-accent)] text-[15px]">Health Check Down</span>
+            <p class="text-[11px] text-[var(--text-muted)] mt-1">Triggers if service is unreachable</p>
+          </div>
+          <div class="p-4 rounded-[18px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)]">
+            <span class="text-[var(--text-muted)] block text-[11px] uppercase font-bold">2. High Latency</span>
+            <span class="font-bold text-[var(--validation-accent)] text-[15px]">&gt; 3,000ms SLA</span>
+            <p class="text-[11px] text-[var(--text-muted)] mt-1">Slow response SLA breach</p>
+          </div>
+          <div class="p-4 rounded-[18px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)]">
+            <span class="text-[var(--text-muted)] block text-[11px] uppercase font-bold">3. Server Errors</span>
+            <span class="font-bold text-[var(--danger-accent)] text-[15px]">HTTP 500 Detected</span>
+            <p class="text-[11px] text-[var(--text-muted)] mt-1">Immediate critical alert</p>
+          </div>
+          <div class="p-4 rounded-[18px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)]">
+            <span class="text-[var(--text-muted)] block text-[11px] uppercase font-bold">4. Failure Rate</span>
+            <span class="font-bold text-[var(--text-heading)] text-[15px]">&gt; 5.0% Errors</span>
+            <p class="text-[11px] text-[var(--text-muted)] mt-1">Spike in 4xx/5xx responses</p>
+          </div>
+          <div class="p-4 rounded-[18px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)]">
+            <span class="text-[var(--text-muted)] block text-[11px] uppercase font-bold">5. Service Health</span>
+            <span class="font-bold text-[var(--primary-accent)] text-[15px]">Degraded / 429</span>
+            <p class="text-[11px] text-[var(--text-muted)] mt-1">Quota depletion or memory surge</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notification Channels Test Bar -->
+      <div class="card p-6">
+        <h3 class="text-[18px] font-bold text-[var(--text-heading)] mb-2 flex items-center gap-2">
+          <span class="material-icons text-[var(--primary-accent)] text-xl">send</span>
+          Notification Dispatch Proof
+        </h3>
+        <p class="text-[12px] text-[var(--text-muted)] mb-4">Send test incident alerts across connected delivery channels:</p>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <button id="test-email-btn" class="button-primary !justify-between !py-3">
+            <span class="flex items-center gap-2">
+              <span class="material-icons text-base text-[var(--primary-accent)]">email</span> Test Email (SMTP)
+            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-[var(--card-bg-elevated)]">Dispatch</span>
+          </button>
+
+          <button id="test-slack-btn" class="button-primary !justify-between !py-3">
+            <span class="flex items-center gap-2">
+              <span class="material-icons text-base text-[#10b981]">chat</span> Test Slack Webhook
+            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-[var(--card-bg-elevated)]">Dispatch</span>
+          </button>
+
+          <button id="test-sms-btn" class="button-primary !justify-between !py-3">
+            <span class="flex items-center gap-2">
+              <span class="material-icons text-base text-[var(--validation-accent)]">phone_android</span> Test Phone / SMS
+            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-[var(--card-bg-elevated)]">Dispatch</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Alerts Records Table -->
+      <div class="card p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 class="text-[18px] font-bold text-[var(--text-heading)] flex items-center gap-2">
+              <span class="material-icons text-[var(--validation-accent)] text-xl">notifications_active</span>
+              Alert Records & Acknowledgment Log
+            </h3>
+            <p class="text-[12px] text-[var(--text-muted)]">Incident logs from high latency, 500 errors, or chaos tests</p>
+          </div>
+          <button id="clear-alerts-btn" class="button-primary !text-[var(--danger-accent)] hover:!border-[var(--danger-accent)]">
+            <span class="material-icons text-sm">delete_outline</span> Clear All Alerts
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-[14px]">
+            <thead>
+              <tr class="border-b border-[var(--card-border)] text-[var(--text-muted)] uppercase tracking-wider text-[11px] font-bold">
+                <th class="py-2.5 px-3">Severity</th>
+                <th class="py-2.5 px-3">Time</th>
+                <th class="py-2.5 px-3">Rule Name</th>
+                <th class="py-2.5 px-3">Endpoint</th>
+                <th class="py-2.5 px-3">Details</th>
+                <th class="py-2.5 px-3">Status</th>
+                <th class="py-2.5 px-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="alerts-table-body" class="divide-y divide-[var(--card-border)]">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: AI SRE ADVISOR & Q&A                                              -->
+    <!-- ========================================================================= -->
+    <div id="tab-ai" class="tab-pane space-y-6 hidden">
+      
+      <!-- AI Advisor Banner -->
+      <div class="card p-6 border-[var(--card-border)] bg-[var(--card-bg-elevated)]">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 rounded-[18px] bg-[#3b82f6]/15 border border-[#3b82f6]/30 flex items-center justify-center text-[#3b82f6]">
+            <span class="material-icons text-2xl">psychology</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-[24px] font-bold text-[var(--text-heading)]">NovaPulse AI Observability Advisor</h2>
+              <span class="badge-pill !text-[10px]">LLM + HEURISTICS</span>
+            </div>
+            <p class="text-[14px] text-[var(--text-muted)] mt-1">
+              Live automated root cause diagnosis, performance recommendations, and natural language Q&A.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actionable Recommendations Grid -->
+      <div>
+        <h3 class="text-[18px] font-bold text-[var(--text-heading)] mb-3 flex items-center gap-2">
+          <span class="material-icons text-[var(--primary-accent)] text-xl">auto_awesome</span>
+          Actionable Recommendations
+        </h3>
+        <div id="ai-recs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Free-Form Q&A Section -->
+      <div class="card p-6">
+        <h3 class="text-[18px] font-bold text-[var(--text-heading)] mb-2 flex items-center gap-2">
+          <span class="material-icons text-[var(--primary-accent)] text-xl">chat</span>
+          Ask NovaPulse AI About API Health
+        </h3>
+        <p class="text-[12px] text-[var(--text-muted)] mb-4">Ask conversational questions regarding uptime drops, slowest endpoints, and optimization plans:</p>
+
+        <!-- Quick Prompt Chips -->
+        <div class="flex flex-wrap gap-2 mb-4">
+          <button class="ai-chip button-primary !py-1 !px-3 !text-[12px] !font-normal">
+            Why did uptime drop?
+          </button>
+          <button class="ai-chip button-primary !py-1 !px-3 !text-[12px] !font-normal">
+            Analyze response time latency spikes
+          </button>
+          <button class="ai-chip button-primary !py-1 !px-3 !text-[12px] !font-normal">
+            Diagnose /simulate-error root cause
+          </button>
+          <button class="ai-chip button-primary !py-1 !px-3 !text-[12px] !font-normal">
+            How to resolve HTTP 429 rate limits?
+          </button>
+        </div>
+
+        <!-- Chat Form -->
+        <form id="ai-chat-form" class="flex gap-2">
+          <input type="text" id="ai-chat-input" placeholder="Type your query (e.g. 'Why did latency exceed 3s?')..." class="flex-1 px-4 py-3 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] text-[14px] text-[var(--text-heading)] placeholder-[var(--text-dim)] focus:outline-none focus:border-[var(--primary-accent)] transition-colors" />
+          <button type="submit" id="ai-chat-submit" class="button-primary !bg-[#2563eb] !border-[#2563eb] text-white font-medium !px-6">
+            <span>Ask AI</span>
+            <span class="material-icons text-base">send</span>
+          </button>
+        </form>
+
+        <!-- Response Area -->
+        <div id="ai-chat-result" class="mt-4 p-5 rounded-[18px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] text-[14px] hidden">
+          <div class="flex items-center justify-between border-b border-[var(--card-border)] pb-2 mb-3">
+            <span class="text-[12px] font-mono text-[var(--primary-accent)] font-bold" id="ai-result-source">NovaPulse SRE Advisor</span>
+            <span class="text-[11px] text-[var(--text-muted)]" id="ai-result-time">Just now</span>
+          </div>
+          <div id="ai-result-body" class="whitespace-pre-line leading-relaxed text-[var(--text-main)] font-normal">
+            <!-- Answer populated -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 5: ENDPOINT EXPLORER                                                  -->
+    <!-- ========================================================================= -->
+    <div id="tab-explorer" class="tab-pane space-y-6 hidden">
+      
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 class="text-[18px] font-bold text-[var(--text-heading)] flex items-center gap-2">
+              <span class="material-icons text-[var(--primary-accent)] text-xl">terminal</span>
+              Interactive REST Endpoint Tester
+            </h3>
+            <p class="text-[12px] text-[var(--text-muted)]">Trigger API endpoints directly and inspect real-time latency, headers, and payloads</p>
+          </div>
+        </div>
+
+        <!-- Quick Endpoint Selection Buttons -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-4">
+          <button class="endpoint-test-btn p-3 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] hover:border-[var(--primary-accent)] text-left transition-colors" data-endpoint="/health" data-method="GET">
+            <span class="font-bold text-[#10b981] block text-[10px]">GET</span>
+            <span class="truncate font-mono block text-[var(--text-heading)] text-[13px]">/health</span>
+          </button>
+          <button class="endpoint-test-btn p-3 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] hover:border-[var(--primary-accent)] text-left transition-colors" data-endpoint="/users" data-method="GET">
+            <span class="font-bold text-[#10b981] block text-[10px]">GET</span>
+            <span class="truncate font-mono block text-[var(--text-heading)] text-[13px]">/users</span>
+          </button>
+          <button class="endpoint-test-btn p-3 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] hover:border-[var(--primary-accent)] text-left transition-colors" data-endpoint="/products" data-method="GET">
+            <span class="font-bold text-[#10b981] block text-[10px]">GET</span>
+            <span class="truncate font-mono block text-[var(--text-heading)] text-[13px]">/products</span>
+          </button>
+          <button class="endpoint-test-btn p-3 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] hover:border-[var(--danger-accent)] text-left transition-colors" data-endpoint="/simulate-error" data-method="GET">
+            <span class="font-bold text-[var(--danger-accent)] block text-[10px]">GET</span>
+            <span class="truncate font-mono block text-[var(--text-heading)] text-[13px]">/simulate-error</span>
+          </button>
+          <button class="endpoint-test-btn p-3 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] hover:border-[var(--validation-accent)] text-left transition-colors" data-endpoint="/simulate-timeout" data-method="GET">
+            <span class="font-bold text-[var(--validation-accent)] block text-[10px]">GET</span>
+            <span class="truncate font-mono block text-[var(--text-heading)] text-[13px]">/simulate-timeout</span>
+          </button>
+          <button class="endpoint-test-btn p-3 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] hover:border-[var(--primary-accent)] text-left transition-colors" data-endpoint="/simulate-rate-limit" data-method="GET">
+            <span class="font-bold text-[var(--primary-accent)] block text-[10px]">GET</span>
+            <span class="truncate font-mono block text-[var(--text-heading)] text-[13px]">/simulate-rate-limit</span>
+          </button>
+        </div>
+
+        <!-- Custom Request Bar -->
+        <div class="flex flex-col sm:flex-row gap-2 mb-4">
+          <input type="text" id="custom-endpoint-input" value="/users" class="flex-1 px-4 py-3 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] text-[13px] font-mono text-[var(--text-heading)] focus:outline-none focus:border-[var(--primary-accent)]" />
+          <button id="send-custom-req-btn" class="button-primary !bg-[#2563eb] !border-[#2563eb] text-white !py-3">
+            <span class="material-icons text-base">play_arrow</span> Send Request
+          </button>
+        </div>
+
+        <!-- Response Inspector -->
+        <div class="rounded-[18px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] p-4 font-mono text-[13px]">
+          <div class="flex items-center justify-between border-b border-[var(--card-border)] pb-2 mb-3">
+            <div class="flex items-center gap-3">
+              <span id="exp-status" class="badge-pill !text-[11px]">HTTP ---</span>
+              <span id="exp-latency" class="text-[var(--text-muted)]">-- ms</span>
+            </div>
+            <span id="exp-url" class="text-[var(--text-muted)] truncate max-w-xs">/users</span>
+          </div>
+          <pre id="exp-response-body" class="max-h-72 overflow-y-auto">Click any endpoint above to execute a live request.</pre>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 6: EXTRA FEATURES (SLA CALCULATOR, CIRCUIT BREAKER, HEALTH MAP)       -->
+    <!-- ========================================================================= -->
+    <div id="tab-features" class="tab-pane space-y-6 hidden">
+      
+      <!-- Feature 1: Interactive SLA & Downtime Budget Calculator -->
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-[14px] bg-[#3b82f6]/15 border border-[#3b82f6]/30 flex items-center justify-center text-[#3b82f6]">
+              <span class="material-icons text-xl">calculate</span>
+            </div>
+            <div>
+              <h3 class="text-[18px] font-bold text-[var(--text-heading)]">Interactive SLA & Downtime Budget Calculator</h3>
+              <p class="text-[12px] text-[var(--text-muted)]">Calculate allowable downtime tolerances and export compliance audit reports</p>
+            </div>
+          </div>
+          <button id="export-sla-report-btn" class="button-primary !py-1.5 !px-4 text-[12px]">
+            <span class="material-icons text-sm text-[var(--success-accent)]">file_download</span> Export Audit (JSON)
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+          <!-- Slider Control -->
+          <div class="lg:col-span-1 p-5 rounded-[18px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-[12px] font-bold text-[var(--text-muted)] uppercase">Target SLA Tier</span>
+              <span class="text-[18px] font-bold text-[var(--primary-accent)]" id="sla-slider-value">99.90%</span>
+            </div>
+            <input type="range" id="sla-slider" min="98.0" max="99.999" step="0.01" value="99.90" class="w-full accent-[#2563eb] cursor-pointer" />
+            <div class="flex justify-between text-[11px] text-[var(--text-muted)] font-mono">
+              <span>98.0% (Bronze)</span>
+              <span>99.9% (Gold)</span>
+              <span>99.999% (5 Nines)</span>
+            </div>
+          </div>
+
+          <!-- Downtime Budget Readouts -->
+          <div class="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div class="p-3.5 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)]">
+              <span class="text-[11px] text-[var(--text-muted)] block font-medium">PER YEAR</span>
+              <span class="text-[16px] font-bold text-[var(--text-heading)] font-mono block mt-1" id="downtime-year">8h 45m</span>
+            </div>
+            <div class="p-3.5 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)]">
+              <span class="text-[11px] text-[var(--text-muted)] block font-medium">PER MONTH</span>
+              <span class="text-[16px] font-bold text-[var(--text-heading)] font-mono block mt-1" id="downtime-month">43m 49s</span>
+            </div>
+            <div class="p-3.5 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)]">
+              <span class="text-[11px] text-[var(--text-muted)] block font-medium">PER WEEK</span>
+              <span class="text-[16px] font-bold text-[var(--text-heading)] font-mono block mt-1" id="downtime-week">10m 04s</span>
+            </div>
+            <div class="p-3.5 rounded-[16px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)]">
+              <span class="text-[11px] text-[var(--text-muted)] block font-medium">LIVE COMPLIANCE</span>
+              <span class="text-[14px] font-bold text-[#10b981] block mt-1" id="sla-compliance-badge">COMPLIANT</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 2: Autonomous Circuit Breaker & Auto-Remediation -->
+      <div class="card p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-[14px] bg-[#f59e0b]/15 border border-[#f59e0b]/30 flex items-center justify-center text-[var(--validation-accent)]">
+              <span class="material-icons text-xl">health_and_safety</span>
+            </div>
+            <div>
+              <h3 class="text-[18px] font-bold text-[var(--text-heading)]">Autonomous Circuit Breaker & Self-Healing Engine</h3>
+              <p class="text-[12px] text-[var(--text-muted)]">Protects FastAPI workers from cascading deadlocks and traffic spikes</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="trip-breaker-btn" class="button-primary !py-1.5 !px-3.5 !bg-[#ef4444]/20 !border-[#ef4444]/40 text-[#ef4444] text-[12px]">
+              <span class="material-icons text-sm">flash_on</span> Trip Breaker (Test)
+            </button>
+            <button id="reset-breaker-btn" class="button-primary !py-1.5 !px-3.5 text-[12px]">
+              <span class="material-icons text-sm">restart_alt</span> Reset Breaker
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 rounded-[18px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] flex items-center justify-between">
+            <div>
+              <span class="text-[11px] text-[var(--text-muted)] block font-bold uppercase">Breaker Status</span>
+              <span class="text-[18px] font-bold text-[#10b981] flex items-center gap-1.5 mt-0.5" id="breaker-status-text">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#10b981] beacon-healthy"></span> CLOSED (NORMAL)
+              </span>
+            </div>
+            <span class="material-icons text-2xl text-[var(--text-muted)]">shield</span>
+          </div>
+
+          <div class="p-4 rounded-[18px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] flex items-center justify-between">
+            <div>
+              <span class="text-[11px] text-[var(--text-muted)] block font-bold uppercase">Drop Slow Queries (>3s)</span>
+              <span class="text-[13px] text-[var(--text-heading)] font-semibold mt-0.5 block">Automated Shedding</span>
+            </div>
+            <input type="checkbox" checked class="w-5 h-5 accent-[#2563eb] cursor-pointer" />
+          </div>
+
+          <div class="p-4 rounded-[18px] bg-[var(--card-bg-elevated)] border border-[var(--card-border)] flex items-center justify-between">
+            <div>
+              <span class="text-[11px] text-[var(--text-muted)] block font-bold uppercase">Heuristic Auto-Healing</span>
+              <span class="text-[13px] text-[var(--text-heading)] font-semibold mt-0.5 block">Worker Pool Recovery</span>
+            </div>
+            <input type="checkbox" checked class="w-5 h-5 accent-[#2563eb] cursor-pointer" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 3: Live Endpoint Health Matrix & Latency Map -->
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-[14px] bg-[#10b981]/15 border border-[#10b981]/30 flex items-center justify-center text-[#10b981]">
+              <span class="material-icons text-xl">lan</span>
+            </div>
+            <div>
+              <h3 class="text-[18px] font-bold text-[var(--text-heading)]">Global Endpoint Health Matrix</h3>
+              <p class="text-[12px] text-[var(--text-muted)]">Live ping status, TLS handshake verification, and response times across all REST routes</p>
+            </div>
+          </div>
+          <button id="ping-all-endpoints-btn" class="button-primary !py-1.5 !px-4 text-[12px] !bg-[#2563eb] !border-[#2563eb] text-white">
+            <span class="material-icons text-sm">wifi_tethering</span> Ping All Routes
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" id="endpoint-matrix-grid">
+          <!-- 6 Route Cards populated dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 7: DOCUMENTATION HUB                                                  -->
+    <!-- ========================================================================= -->
+    <div id="tab-docs" class="tab-pane space-y-6 hidden">
+      <div class="card p-6 space-y-6">
+        <div>
+          <h2 class="text-[28px] font-bold text-[var(--text-heading)] flex items-center gap-2">
+            <span class="material-icons text-[var(--primary-accent)] text-2xl">menu_book</span>
+            NovaPulse AI Observability Documentation
+          </h2>
+          <p class="text-[14px] text-[var(--text-muted)] mt-1">Complete architectural reference, alert rules, and chaos runbooks</p>
+        </div>
+
+        <!-- Section 1: Architecture -->
+        <div class="space-y-2">
+          <h3 class="text-[18px] font-bold text-[var(--text-heading)] border-b border-[var(--card-border)] pb-1">1. Monitoring Architecture Diagram</h3>
+          <p class="text-[14px] text-[var(--text-muted)] leading-relaxed">
+            Every incoming HTTP request traverses the high-performance ASGI <code class="text-[var(--text-heading)] bg-[var(--card-bg-elevated)] px-1.5 py-0.5 rounded border border-[var(--card-border)]">MonitoringMiddleware</code>, which captures nanosecond timing metrics, evaluates thresholds, and records request telemetry directly into SQLite.
+          </p>
+          <pre>
++----------------------------------------------------------------------------------------+
+|                                    CLIENT APPLICATION                                  |
++----------------------------------------------------------------------------------------+
+                                           |
+                                           v
++----------------------------------------------------------------------------------------+
+|                          FastAPI Application (app.main:app)                            |
+|                                                                                        |
+|  [ ASGI Monitoring Middleware ]                                                        |
+|     |---> Record Latency, Method, Path, Status Code                                    |
+|     |---> Evaluate Alert Thresholds (Downtime, >3s Latency, 500, >5% Failure, 429)     |
+|     |                                                                                  |
+|     v                                                                                  |
+|  [ REST API Endpoints ]       [ Monitoring API ]            [ AI Advisor Engine ]      |
+|     - /health                    - /metrics (Prometheus)       - Gemini 1.5 Flash API  |
+|     - /users                     - /api/metrics/summary        - SRE Heuristic Engine  |
+|     - /products                  - /api/metrics/timeseries     - Q&A Contextual Agent  |
+|     - /simulate-error            - /api/alerts                                         |
+|     - /simulate-timeout          - /api/simulations/run                                |
+|     - /simulate-rate-limit       - /api/auth/login, /register                          |
++----------------------------------------------------------------------------------------+
+          |                                  |                           |
+          v                                  v                           v
++-----------------------+          +-------------------+       +--------------------+
+|  SQLite Database      |          | Prometheus Scraper|       | Notifications Hub  |
+|  (WAL Mode Active)    |          | & Grafana Server  |       | - Slack Webhook    |
+|  - request_logs       |          | (polls /metrics)  |       | - Email (SMTP)     |
+|  - alerts             |          +-------------------+       | - Twilio / SMS     |
+|  - simulation_runs    |                                      +--------------------+
++-----------------------+
+          </pre>
+        </div>
+
+        <!-- Section 2: Endpoints Reference -->
+        <div class="space-y-2">
+          <h3 class="text-[18px] font-bold text-[var(--text-heading)] border-b border-[var(--card-border)] pb-1">2. Sample API Endpoints Reference</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-[14px]">
+              <thead>
+                <tr class="border-b border-[var(--card-border)] text-[var(--text-muted)]">
+                  <th class="py-2 px-2">Endpoint</th>
+                  <th class="py-2 px-2">Method</th>
+                  <th class="py-2 px-2">Behavior & SLA</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[var(--card-border)]">
+                <tr><td class="py-2 px-2 font-mono text-[var(--text-heading)]">/health</td><td class="py-2 px-2 font-bold text-[#10b981]">GET</td><td class="py-2 px-2 text-[var(--text-muted)]">Returns health status (healthy/degraded/unhealthy) and memory/CPU stats</td></tr>
+                <tr><td class="py-2 px-2 font-mono text-[var(--text-heading)]">/users</td><td class="py-2 px-2 font-bold text-[#10b981]">GET</td><td class="py-2 px-2 text-[var(--text-muted)]">Returns sample user directory (JSON list)</td></tr>
+                <tr><td class="py-2 px-2 font-mono text-[var(--text-heading)]">/products</td><td class="py-2 px-2 font-bold text-[#10b981]">GET</td><td class="py-2 px-2 text-[var(--text-muted)]">Returns sample product catalog (JSON list)</td></tr>
+                <tr><td class="py-2 px-2 font-mono text-[var(--danger-accent)]">/simulate-error</td><td class="py-2 px-2 font-bold text-[var(--danger-accent)]">GET</td><td class="py-2 px-2 text-[var(--text-muted)]">Generates a simulated server crash (HTTP 500)</td></tr>
+                <tr><td class="py-2 px-2 font-mono text-[var(--validation-accent)]">/simulate-timeout</td><td class="py-2 px-2 font-bold text-[var(--validation-accent)]">GET</td><td class="py-2 px-2 text-[var(--text-muted)]">Simulates slow upstream response (&gt;3s latency breach)</td></tr>
+                <tr><td class="py-2 px-2 font-mono text-[var(--primary-accent)]">/simulate-rate-limit</td><td class="py-2 px-2 font-bold text-[var(--primary-accent)]">GET</td><td class="py-2 px-2 text-[var(--text-muted)]">Simulates rate limit quota depletion (HTTP 429)</td></tr>
+                <tr><td class="py-2 px-2 font-mono text-[var(--validation-accent)]">/api/auth/test</td><td class="py-2 px-2 font-bold text-[var(--validation-accent)]">GET</td><td class="py-2 px-2 text-[var(--text-muted)]">Simulates authentication gate (401 without Bearer token)</td></tr>
+                <tr><td class="py-2 px-2 font-mono text-[var(--primary-accent)]">/api/auth/login</td><td class="py-2 px-2 font-bold text-[var(--primary-accent)]">POST</td><td class="py-2 px-2 text-[var(--text-muted)]">Operator sign-in with credentials and token session issue</td></tr>
+                <tr><td class="py-2 px-2 font-mono text-[var(--primary-accent)]">/api/auth/register</td><td class="py-2 px-2 font-bold text-[var(--primary-accent)]">POST</td><td class="py-2 px-2 text-[var(--text-muted)]">Operator sign-up and auto-provisioning</td></tr>
+                <tr><td class="py-2 px-2 font-mono text-[#10b981]">/metrics</td><td class="py-2 px-2 font-bold text-[#10b981]">GET</td><td class="py-2 px-2 text-[var(--text-muted)]">Standard Prometheus text format metrics exposition</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section 3: Troubleshooting -->
+        <div class="space-y-2">
+          <h3 class="text-[18px] font-bold text-[var(--text-heading)] border-b border-[var(--card-border)] pb-1">3. Operational Troubleshooting & Runbook</h3>
+          <ul class="list-disc list-inside text-[14px] text-[var(--text-muted)] space-y-1">
+            <li><strong>Port Conflict (8000 in use):</strong> Launch with custom port: <code class="text-[var(--text-heading)]">python -m uvicorn app.main:app --port 8080 --reload</code>.</li>
+            <li><strong>Database Reset:</strong> Delete <code class="text-[var(--text-heading)]">monitoring.db</code> and restart the application; the schema and initial seed data will regenerate automatically.</li>
+            <li><strong>Connecting Prometheus & Grafana:</strong> Point your Prometheus scrape configuration to <code class="text-[var(--text-heading)]">http://localhost:8000/metrics</code> with a 5s scrape interval.</li>
+            <li><strong>Enabling Live Gemini AI:</strong> Set the <code class="text-[var(--text-heading)]">GEMINI_API_KEY</code> environment variable in your terminal before launching.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- NOVAPULSE AI FOOTER -->
+  <footer class="max-w-[1200px] mx-auto px-4 py-12 border-t border-[var(--nav-border)] text-[var(--text-muted)] text-[14px] flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10 transition-colors">
+    <div class="flex items-center gap-3">
+      <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="36" height="36" rx="8" fill="url(#footer-grad)" />
+        <path d="M7 18h5l3-7 4 14 4-9 3 5h6" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+        <defs>
+          <linearGradient id="footer-grad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#2563eb" />
+            <stop offset="1" stop-color="#8b5cf6" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <span class="font-bold text-[var(--text-heading)] text-[14px]">NovaPulse AI</span>
+      <span>— Ultra Autonomous FastAPI Observability & Chaos Suite</span>
+    </div>
+    <div class="flex items-center gap-4 text-[14px]">
+      <a href="/docs" target="_blank" class="hover:text-[var(--text-heading)] transition-colors">API Docs</a>
+      <a href="/metrics" target="_blank" class="hover:text-[var(--text-heading)] transition-colors">Prometheus</a>
+      <a href="/health" target="_blank" class="hover:text-[var(--text-heading)] transition-colors">Health</a>
+      <span class="opacity-30">|</span>
+      <span class="text-[12px]">© 2026 NovaPulse AI. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <!-- Core Dashboard App Logic (3D Canvas + Cursor + PiP Dock + Modals + State + Charts + Themes) -->
+  <script src="/static/app.js" onerror="this.onerror=null;this.src='/app.js';"></script>
+</body>
+</html>

@@ -399,16 +399,36 @@ def ask_ai(req: AIQuestionRequest):
 # STATIC FILES MOUNT & ROOT DASHBOARD
 # =========================================================================
 
-static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+static_dir = os.path.join(root_dir, "static")
+public_dir = os.path.join(root_dir, "public")
+
 if os.path.exists(static_dir):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+@app.get("/static/{file_path:path}", include_in_schema=False)
+def serve_static_direct(file_path: str):
+    """Explicit static file server with exact MIME types for Vercel serverless."""
+    for candidate in [
+        os.path.join(static_dir, file_path),
+        os.path.join(public_dir, "static", file_path),
+        os.path.join(public_dir, file_path),
+    ]:
+        if os.path.exists(candidate) and os.path.isfile(candidate):
+            media = "text/css" if candidate.endswith(".css") else ("application/javascript" if candidate.endswith(".js") else None)
+            return FileResponse(candidate, media_type=media)
+    raise HTTPException(status_code=404, detail="Static file not found")
 
 @app.get("/", include_in_schema=False)
 def serve_dashboard():
     """Serves the main NovaPulse AI Monitoring Dashboard UI."""
-    index_file = os.path.join(static_dir, "index.html")
-    if os.path.exists(index_file):
-        return FileResponse(index_file)
+    for candidate in [
+        os.path.join(static_dir, "index.html"),
+        os.path.join(public_dir, "index.html"),
+        os.path.join(public_dir, "static", "index.html"),
+    ]:
+        if os.path.exists(candidate):
+            return FileResponse(candidate)
     return {
         "app": settings.APP_NAME,
         "status": "running",
