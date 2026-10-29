@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/badge/Python-Backend-3776AB?style=for-the-badge&amp;logo=python&amp;logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/Prometheus-Metrics-E6522C?style=for-the-badge&amp;logo=prometheus&amp;logoColor=white" alt="Prometheus" />
   <img src="https://img.shields.io/badge/SQLite-Storage-003B57?style=for-the-badge&amp;logo=sqlite&amp;logoColor=white" alt="SQLite" />
-  <img src="https://img.shields.io/badge/Google%20Gemini-AI%20Advisor-4285F4?style=for-the-badge&amp;logo=googlegemini&amp;logoColor=white" alt="Google Gemini" />
+ 
 </p>
 
 <h1 align="center">🚀 NovaPulse AI</h1>
